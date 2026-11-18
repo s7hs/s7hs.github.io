@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>songphuong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;touch-action:none}
+body{background:#000;color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+#bgv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;filter:blur(14px) brightness(.55);transform:scale(1.08);opacity:0;transition:opacity 1.6s}
+body.on #bgv{opacity:1}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:20;pointer-events:none}
+
+/* Màn hình click để vào */
+#enter{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#000;cursor:pointer;transition:opacity .9s,visibility .9s}
+#enter.out{opacity:0;visibility:hidden}
+.neon{font-family:"Fredoka","Fredoka One","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:700;color:#fff;text-shadow:0 0 4px #fff,0 0 10px #fff,0 0 22px rgba(255,255,255,.75),0 0 44px rgba(255,255,255,.45)}
+#et{font-size:2.4rem;letter-spacing:.1em;animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+
+/* Khung hồ sơ */
+#card{position:fixed;inset:0;display:grid;place-items:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.box{width:min(92vw,560px);padding:22px 18px 20px;background:rgba(12,8,8,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.06);opacity:0;transform:scale(.97)}
+body.on .box{animation:boxin .9s .2s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes boxin{to{opacity:1;transform:none}}
+.rv{opacity:0;transform:translateY(14px);filter:blur(5px)}
+body.on .rv{animation:in .8s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*.14s + .5s)}
+@keyframes in{to{opacity:1;transform:none;filter:none}}
+
+/* Chữ chấm tròn kiểu LED */
+.dot{font-family:"Fredoka","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:700;color:transparent;background:radial-gradient(circle,#fff 0 1.3px,transparent 1.7px) 0 0/3.6px 3.6px;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 5px rgba(255,255,255,.7))}
+.top{display:flex;flex-direction:column;align-items:center;text-align:center}
+.nm{display:block;width:min(74vw,340px);height:auto;filter:drop-shadow(0 0 6px rgba(255,255,255,.55)) drop-shadow(0 0 16px rgba(255,255,255,.25))}
+.bio{display:inline-block;margin-top:8px;font-size:1.1rem;background-size:2.6px 2.6px}
+
+/* Badge */
+.pill{display:inline-flex;align-items:center;gap:2px;margin-top:6px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08)}
+.b{position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:#fff;font:inherit;text-decoration:none;cursor:pointer;opacity:0;transform:scale(.3) rotate(-35deg);transition:scale .25s cubic-bezier(.3,1.6,.5,1),translate .25s,color .25s}
+body.on .b{animation:pop .55s cubic-bezier(.3,1.6,.5,1) forwards;animation-delay:calc(1.4s + var(--k)*.09s)}
+@keyframes pop{to{opacity:1;transform:none}}
+.b:hover,.b:focus-visible,.b:focus{scale:1.25;translate:0 -2px;outline:none}
+.b:active{scale:.9}
+.b svg{width:26px;height:26px;fill:currentColor;filter:drop-shadow(0 0 5px currentColor)}
+.b.bn{color:#0e0e0e}
+.b.bn svg{filter:none}
+.b.gm svg{width:34px;height:34px;filter:none}
+.b.bn:hover,.b.bn:focus{color:#fff}
+.b::after{content:attr(data-t);position:absolute;top:135%;left:50%;translate:-50% -4px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:.72rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,translate .2s;z-index:3}
+.b:hover::after,.b:focus::after{opacity:1;translate:-50% 0}
+
+/* Lượt xem + vị trí */
+.stats{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:30px;font-size:.95rem;color:#ececec}
+.stats span{display:flex;align-items:center;gap:8px}
+.stats svg{width:20px;height:20px;fill:#fff}
+.sep{width:1px;height:20px;background:rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<video id="bgv" autoplay muted loop playsinline></video>
+<audio id="au" loop></audio>
+<canvas id="fx"></canvas>
+
+<div id="enter" tabindex="0" role="button"><span id="et" class="neon"></span></div>
+
+<main id="card">
+  <div class="box">
+    <div class="top">
+      <h1 class="rv" style="--i:0"><img id="nm" class="nm" src="songphuong.png" alt="songphuong"></h1>
+      <div class="pill rv" id="badges" style="--i:1"></div>
+      <span id="bio" class="bio dot rv" style="--i:2"></span>
+    </div>
+    <div class="stats rv" style="--i:3">
+      <span><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg><b id="views" style="font-weight:400">0</b></span>
+      <i class="sep"></i>
+      <span><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg><b id="loc" style="font-weight:400"></b></span>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ===== SỬA THÔNG TIN Ở ĐÂY ===== */
+const C={
+  name:"songphuong",
+  enter:"phw",           // chữ trên màn hình "click để vào"
+  bio:"^^",
+  location:"Paradise",
+  views:230998,            // số bắt đầu; mỗi lượt mở trang sẽ cộng thêm vào số này
+  bgVideo:"bg.mp4",        // video nền (bị làm mờ)
+  music:"music2.mp3",                // vd: "music.mp3"
+  badges:[                 // href: link khi bấm badge (để trống = chỉ hiện tên)
+    {k:"verified",t:"Verified",href:""},
+    {k:"diamond",t:"Premium",href:""},
+    {k:"bunny",t:"phw dyeu",href:""},
+    {k:"gem",t:"Gem",href:""}
+  ]
+};
+/* ================================= */
+const $=id=>document.getElementById(id);
+
+const P=(n,R,r,o,cx=12,cy=12)=>Array.from({length:2*n},(_,i)=>{const a=(o+i*180/n)*Math.PI/180,d=i%2?R:r;return (cx+d*Math.cos(a)).toFixed(2)+","+(cy+d*Math.sin(a)).toFixed(2)}).join(" ");
+const seal=`<polygon points="${P(12,11,9.3,-90)}" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>`;
+const I={
+  verified:'<polygon points="'+P(10,11.3,9,-90)+'"/><path d="M7.7 12.2L10.9 15.3L16.5 9.3" fill="none" stroke="#b9b9b9" stroke-width="2.2"/>',
+  diamond:'<path d="M4.2 1H18.7L23.3 8.2L12 22.9L.7 8.2Z"/><path d="M.7 8.2H23.3M4.7 1.7L8.1 7.5L12 3.4L15.9 7.5L19.3 1.7M8.2 8.9L12 22.4M15.8 8.9L12 22.4" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.4"/>',
+  bunny:'<g stroke="#fff" stroke-opacity=".3" stroke-width=".8"><ellipse cx="8.4" cy="6.6" rx="2.6" ry="5.4" transform="rotate(-7 8.4 6.6)"/><ellipse cx="16" cy="6.6" rx="2.6" ry="5.4" transform="rotate(7 16 6.6)"/><path d="M5.4 17.6C5.4 14.5 8 12.6 12.4 12.6S19.4 14.5 19.4 17.6C19.4 20.6 17.6 22.7 12.4 22.7S5.4 20.6 5.4 17.6z"/></g>',
+  gem:'<defs><radialGradient id="gh" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="#22313f"/><stop offset="1" stop-color="#0c1620"/></radialGradient><radialGradient id="gl"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="gf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a5058"/><stop offset="1" stop-color="#6e747c"/></linearGradient></defs><polygon points="12,1.7 22,7.2 22,16.8 12,22.3 2,16.8 2,7.2" fill="url(#gh)" stroke="url(#gh)" stroke-width="2.2" stroke-linejoin="round"/><path d="M3.2 7.6L12 2.4L20.8 7.6" fill="none" stroke="#fff" stroke-width=".55" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="url(#gl)"/><polygon points="8.3,6.3 15.7,6.3 18.8,10.1 12,17.8 5.2,10.1" fill="#fff" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><polygon points="14.2,7.5 17.2,9.9 12.6,9.9" fill="url(#gf)"/><polygon points="6.9,10.2 10.1,10.2 11.9,15.6" fill="url(#gf)"/>'
+};
+
+$("nm").alt=C.name;document.title=C.name;
+$("bio").textContent=C.bio;
+$("loc").textContent=C.location;
+$("et").textContent=C.enter;
+if(C.bgVideo)$("bgv").src=C.bgVideo;
+if(C.music)$("au").src=C.music;
+
+C.badges.forEach((b,k)=>{
+  const el=document.createElement(b.href?"a":"button");
+  el.className="b"+(b.k==="bunny"?" bn":b.k==="gem"?" gm":"");el.style.setProperty("--k",k);el.dataset.t=b.t;el.setAttribute("aria-label",b.t);
+  if(b.href){el.href=b.href;el.target="_blank";el.rel="noopener"}
+  el.innerHTML=`<svg viewBox="0 0 24 24">${I[b.k]}</svg>`;
+  $("badges").appendChild(el);
+});
+
+/* Đếm lượt xem thật bằng Abacus (miễn phí). Đổi ns thành chuỗi riêng nếu muốn */
+const CNT={ns:"sogphuog-paris-linkinbio",key:"views"};
+const viewsReady=(async()=>{
+  try{
+    let seen=null;try{seen=localStorage.getItem("viewed2")}catch(e){}   // mỗi trình duyệt chỉ tính 1 lần
+    const r=await fetch(`https://abacus.jasoncameron.dev/${seen?"get":"hit"}/${CNT.ns}/${CNT.key}`);
+    const d=await r.json();
+    if(typeof d.value==="number"){C.views+=d.value;try{localStorage.setItem("viewed2","1")}catch(e){}}
+  }catch(e){}   // lỗi mạng hoặc bị chặn thì giữ số bắt đầu
+})();
+function countUp(){
+  const t0=performance.now(),D=1600;
+  (function f(t){const p=Math.min((t-t0)/D,1),e=1-Math.pow(1-p,3);
+    $("views").textContent=Math.round(C.views*e).toLocaleString("en-US");
+    if(p<1)requestAnimationFrame(f)})(t0);
+}
+let entered=false;
+function enter(){
+  if(entered)return;entered=true;
+  $("enter").classList.add("out");
+  document.body.classList.add("on");
+  if(C.bgVideo)$("bgv").play().catch(()=>{});
+  if(C.music)$("au").play().catch(()=>{});
+  Promise.race([viewsReady,new Promise(r=>setTimeout(r,2500))]).then(()=>setTimeout(countUp,1100));
+}
+$("enter").addEventListener("click",enter);
+$("enter").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" ")enter()});
+
+/* Hiệu ứng chuột/chạm: bấm = tia sét nứt, rê chuột hoặc kéo ngón tay = vệt chấm sáng */
+(()=>{
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const cv=$("fx"),g=cv.getContext("2d"),D=Math.min(devicePixelRatio||1,2),R=Math.random,bolts=[],dots=[];
+  let W,H,run=false,last=0,px=null,py=null;
+  const fit=()=>{W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;g.setTransform(D,0,0,D,0,0)};
+  fit();addEventListener("resize",fit);
+  function bolt(x,y){
+    const segs=[];
+    for(let i=0,n=4+(R()*3|0);i<n;i++){
+      let a=R()*6.283,X=x,Y=y;const pts=[[X,Y]];
+      for(let j=0,m=5+(R()*5|0);j<m;j++){a+=(R()-.5)*1.5;const l=7+R()*13;X+=Math.cos(a)*l;Y+=Math.sin(a)*l;pts.push([X,Y])}
+      segs.push(pts);
+    }
+    bolts.push({segs,t:0});start();
+  }
+  function move(x,y){
+    if(px===null){px=x;py=y;return}
+    const dx=x-px,dy=y-py,n=Math.floor(Math.hypot(dx,dy)/7);
+    if(!n)return;
+    for(let i=1;i<=n;i++)dots.push({x:px+dx*i/n+(R()-.5)*3,y:py+dy*i/n+(R()-.5)*3,r:.8+R()*1.6,t:0});
+    px=x;py=y;start();
+  }
+  function tick(ts){
+    const dt=Math.min((ts-last)/1000,.05);last=ts;
+    g.clearRect(0,0,W,H);g.lineJoin="round";g.lineCap="round";g.shadowColor="#fff";
+    for(let i=bolts.length;i--;){
+      const b=bolts[i];b.t+=dt;const a=1-b.t/.9;
+      if(a<=0){bolts.splice(i,1);continue}
+      g.globalAlpha=Math.pow(a,1.4);g.strokeStyle="#e8e8ee";g.lineWidth=1.6;g.shadowBlur=10;
+      g.beginPath();
+      b.segs.forEach(p=>{g.moveTo(p[0][0],p[0][1]);for(let k=1;k<p.length;k++)g.lineTo(p[k][0],p[k][1])});
+      g.stroke();
+    }
+    g.fillStyle="#fff";g.shadowBlur=6;
+    for(let i=dots.length;i--;){
+      const d=dots[i];d.t+=dt;const a=1-d.t/.8;
+      if(a<=0){dots.splice(i,1);continue}
+      g.globalAlpha=a;g.beginPath();g.arc(d.x,d.y,d.r*(.5+a/2),0,6.283);g.fill();
+    }
+    g.globalAlpha=1;
+    if(bolts.length||dots.length)requestAnimationFrame(tick);else{run=false;g.clearRect(0,0,W,H)}
+  }
+  function start(){if(!run){run=true;last=performance.now();requestAnimationFrame(tick)}}
+  addEventListener("pointerdown",e=>{px=e.clientX;py=e.clientY;bolt(e.clientX,e.clientY)});
+  addEventListener("pointermove",e=>move(e.clientX,e.clientY));
+  addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")px=null});
+  addEventListener("pointercancel",()=>{px=null});
+})();
+</script>
+</body>
+</html>
